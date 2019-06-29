@@ -55,20 +55,7 @@ class StreamingOutput(object):
 
 class StreamingHandler(server.BaseHTTPRequestHandler):
     def do_GET(self):
-        if self.headers.get('Authorization') is None:
-            self.do_AUTHHEAD()
-            self.wfile.write(b'no auth header received')
-        elif self.headers.get('Authorization') == BASIC_AUTH:
             self.authorized_get()
-        else:
-            self.do_AUTHHEAD()
-            self.wfile.write(b'not authenticated')
-
-    def do_AUTHHEAD(self):
-        self.send_response(401)
-        self.send_header('WWW-Authenticate', 'Basic realm=\"picamera\"')
-        self.send_header('Content-type', 'text/html')
-        self.end_headers()
 
     def authorized_get(self):
         if self.path == '/':
@@ -79,12 +66,18 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             content = PAGE.encode('utf-8')
             self.send_response(200)
             self.send_header('Content-Type', 'text/html')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.send_header('Access-Control-Allow-Headers','authorization'),
+            self.send_header('Access-Control-Allow-Methods','HEAD, GET, POST, PUT, PATCH, DELETE')
             self.send_header('Content-Length', len(content))
             self.end_headers()
             self.wfile.write(content)
         elif self.path == '/stream.mjpg':
             self.send_response(200)
             self.send_header('Age', 0)
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.send_header('Access-Control-Allow-Headers','authorization'),
+            self.send_header('Access-Control-Allow-Methods','HEAD, GET, POST, PUT, PATCH, DELETE')
             self.send_header('Cache-Control', 'no-cache, private')
             self.send_header('Pragma', 'no-cache')
             self.send_header('Content-Type', 'multipart/x-mixed-replace; boundary=FRAME')
